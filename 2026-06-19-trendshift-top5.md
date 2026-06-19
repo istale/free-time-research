@@ -4,71 +4,72 @@
 
 ## 排名摘要
 
-### 1. chopratejas/headroom
-- **TrendShift 卡片數據：** 1.1k stars、mentioned on 86
-- **描述：** 在進入 LLM 之前先壓縮工具輸出、logs、檔案與 RAG chunks，主打 60-95% token 節省，提供 library、proxy 與 MCP server。
-- **這個專案是做什麼的？**
-  它是 AI agent／LLM 基建層，核心價值是減少上下文膨脹，讓 agent 在不太傷答案品質的前提下吃更少 token。
-- **為什麼今天會上 trend？（可能原因）**
-  現在大家都在做 agent，token 成本與 context 壓力是共同痛點；而且它同時踩中 `AI infrastructure`、`MCP`、`proxy` 這幾個熱門關鍵字。
-- **亮點或風險：**
-  亮點是價值主張非常直接，對實務團隊有明確 ROI。風險是「壓縮後答案幾乎不變」這類 claim 很吃 benchmark 設計，實戰上可能遇到資訊遺失或可解釋性下降。
-- **適合當作 OpenClaw skill 候選嗎？**
-  適合列為「外部基建整合候選」，但不太像純 skill 本體。若要做，方向會是接入 headroom 來降低 agent 成本，而不是把它本身改寫成 prompt workflow。
+### 🥇 #1｜**headroom**（`chopratejas/headroom`）
+- ⭐ Stars：~1,100（New 2026）
+- 📊 Mentioned on：20,881 repositories
+- **功能：** LLM 上下文壓縮工具，可壓縮 tool outputs、logs、files、RAG chunks，號稱減少 60-95% tokens。支援 Library、Proxy、MCP Server 三種模式。
+- **為何 Trend：** Token 成本一直是 AI 應用的痛點，特別是 MCP (Model Context Protocol) 生態快速成長的現在，能直接降低 60-95% token 用量的工具極具吸引力。
+- **亮點：** 一個專案同時具備三種部署形態（lib / proxy / MCP server），實用性高；對 RAG 和 Agent 場景都有直接價值。
+- **風險：** 壓縮演算法的準確性是關鍵，若遺漏關鍵資訊會導致 LLM 回答品質下降；需要觀察壓縮率的長期穩定性。
+- **Skill 候選：** ✅ 高度可能。非常適合包裝成 OpenClaw skill，特別是與 LLM/MCP 相關的工作流程。
 
-### 2. DietrichGebert/ponytail
-- **TrendShift 卡片數據：** 953 stars、mentioned on 65
-- **描述：** 讓 AI agent 像最偷懶但最有效率的資深工程師一樣思考，重點是少寫不必要的程式。
-- **這個專案是做什麼的？**
-  這比較像一套 agent 開發方法論／工作哲學，強調優先重用、削減需求與避免過度工程，而不是盲目生成新程式碼。
-- **為什麼今天會上 trend？（可能原因）**
-  它的敘事很強，口號也很容易傳播；再加上 AI coding assistant 圈現在很愛談 workflow 與 engineering taste，爆上來不意外。
-- **亮點或風險：**
-  亮點是可快速內化成團隊準則，對 agent 行為約束很有幫助。風險是如果只學到口號、不補判斷框架，很容易變成「合理化不做事」。
-- **適合當作 OpenClaw skill 候選嗎？**
-  很適合。這種 methodology 型 repo 最容易轉成 OpenClaw skill，尤其適合整理成任務前的需求縮減、重用優先、自我審查流程。
+---
 
-### 3. TabularisDB/tabularis
-- **TrendShift 卡片數據：** 167 stars、mentioned on 5
-- **描述：** 開源資料庫 client，支援 PostgreSQL、MySQL/MariaDB、SQLite，內建 SQL notebooks、visual EXPLAIN、AI 與 MCP，並可用 plugins 擴充。
-- **這個專案是做什麼的？**
-  它是比較新一代的 database workspace，想把傳統 DB client、分析 notebook、AI 助手與 MCP 能力合在一起。
-- **為什麼今天會上 trend？（可能原因）**
-  近來「把 MCP 接進既有開發工具」很容易引人注意；而且 DB tooling 本來就有穩定需求，加入 AI/notebook 敘事後更容易被轉發。
-- **亮點或風險：**
-  亮點是定位清楚，對資料工程與分析工作流很有想像空間。風險是它還很早期，既要做好 DB client，又要顧 AI/MCP/plugin 體驗，產品面容易過重。
-- **適合當作 OpenClaw skill 候選嗎？**
-  中度適合。它本身比較像外部工具，但若後續 MCP 介面成熟，值得研究成「資料庫探索／查詢協作」類 skill 的整合對象。
+### 🥈 #2｜**ponytail**（`DietrichGebert/ponytail`）
+- ⭐ Stars：~953（New 2026）
+- 📊 Mentioned on：50,668 repositories
+- **功能：** 讓 AI agent 像「最懶的老鳥工程師」一樣思考——能不寫 code 就不寫，用最少程式碼達成目標。
+- **為何 Trend：** 社群行銷打法很聰明，「懶惰工程師」概念在開發者社群引發共鳴；口號易懂且易於傳播，加上 Kamran Ahmed 的開源社群影響力。
+- **亮點：** 概念新穎，包裝能力強；50k+ 提及率說明傳播範圍極廣。
+- **風險：** 目前 Stars 953 且「新 2026」，成熟度待觀察；「不寫 code」的理念在實際複雜專案中可能不適用。
+- **Skill 候選：** ⚠️ 觀望。概念性工具，實際落地價值還需進一步評估。
 
-### 4. google-research/timesfm
-- **TrendShift 卡片數據：** 304 stars、mentioned on 15
-- **描述：** Google Research 的預訓練時間序列 foundation model，用於時間序列預測。
-- **這個專案是做什麼的？**
-  這是做 forecasting 的研究型模型，主要用在各種時間序列預測場景，例如需求、流量、財務或感測數據。
-- **為什麼今天會上 trend？（可能原因）**
-  Google Research 本身就有品牌效應；另一方面，foundation model 從文字擴散到 time-series 也是有代表性的研究趨勢，所以容易被研究圈與工程圈同時轉貼。
-- **亮點或風險：**
-  亮點是研究可信度高，若效果好，可能成為 time-series 任務的通用底座。風險是它比較偏模型研究，實務落地仍要看資料前處理、domain fit 與部署成本。
-- **適合當作 OpenClaw skill 候選嗎？**
-  不太適合直接轉 skill。它比較像研究能力模組，除非之後 Master 有明確的 forecasting 工作流需求，不然暫時偏觀察名單。
+---
 
-### 5. Kilo-Org/kilocode
-- **TrendShift 卡片數據：** 289 stars、mentioned on 10
-- **描述：** 全功能 agentic engineering platform，主打用熱門開源 coding agent 來加速 build、ship、iterate。
-- **這個專案是做什麼的？**
-  它想把 coding agent 的使用體驗平台化，變成一個整合式 agentic engineering 工作台，而不只是單點 CLI 工具。
-- **為什麼今天會上 trend？（可能原因）**
-  「agentic engineering platform」這個定位現在很吃香，而且大家都在找從 demo 走向團隊化協作的路徑，這類平台型敘事很容易被關注。
-- **亮點或風險：**
-  亮點是野心大，若整合做得好，會很有團隊導入吸引力。風險是平台型產品往往依賴鏈重、學習曲線高，而且開源 agent 平台之間競爭已經很擠。
-- **適合當作 OpenClaw skill 候選嗎？**
-  部分適合。整套搬進來未必合理，但它的 agent orchestration、工程協作流程與平台包裝方式，值得當成 skill 設計參考樣本。
+### 🥉 #3｜**Tabularis**（`TabularisDB`）
+- ⭐ Stars：~167（New 2026）
+- 📊 Mentioned on：26,365 repositories
+- **功能：** 開源資料庫用戶端，支援 PostgreSQL、MySQL/MariaDB、SQLite，具備 SQL Notebooks、Visual EXPLAIN、AI 輔助、MCP 內建，支援 Plugin 擴充。
+- **為何 Trend：** 對標 DataGrip、TablePlus 等商業工具，但強調開源 + AI + MCP 整合，近期 MCP 生態火熱讓任何自帶 MCP 的工具都有曝光優勢。
+- **亮點：** 三個主流資料庫一次支援，加上 AI 輔助查詢和 MCP，差異化完整；開源且可插件化。
+- **風險：** Stars 只有 167，社群基礎薄弱；類似定位的競品（如 Bytebase、Hub管理工具）已經很成熟。
+- **Skill 候選：** ⚠️ 興趣導向。若 Master 有 DB 相關工作需求，可評估。
+
+---
+
+### #4｜**TimesFM**（`google-research/timesfm`）
+- ⭐ Stars：~304
+- 📊 Mentioned on：10,050 repositories
+- **功能：** Google Research 開發的時間序列預測基礎模型，支援零樣本（zero-shot）預測，無需訓練即可做時間序列分析。
+- **為何 Trend：** 時間序列預測是金融、物流、IoT、能源等領域的核心需求；Google 品牌 + 開源降低使用門檻，近期 AI + 預測相關議題持續受關注。
+- **亮點：** Google Research 背書，模型品質有保障；zero-shot 能力強大，適用場景廣。
+- **風險：** 不是新專案（Stars 304 偏低），上升趨勢可能來自外部議題帶動而非產品本身更新；模型效能是否真的頂尖需要驗證。
+- **Skill 候選：** ✅ 可能。時間序列預測是常見需求，可評估其準確性後再決定。
+
+---
+
+### #5｜**Kilo**（`kilo-org`）
+- ⭐ Stars：~289
+- 📊 Mentioned on：14,151 repositories
+- **功能：** 全端 Agentic Engineering 平台，整合 VS Code、JetBrains、CLI、Cloud，支援 500+ 模型，號稱 OpenRouter #1 開源 Coding Agent。
+- **為何 Trend：** AI Coding Agent 赛道競爭激烈，Kilo 以「all-in-one」平台定位突圍，支援多種 IDE + 多模型，差異化明確。
+- **亮點：** 支援 500+ 模型且號稱零加價，開發者友好；all-in-one 定位減少工具切換成本。
+- **風險：** AI Coding Agent 市場已經有 Cursor、Windsurf、GitHub Copilot 等成熟玩家，Kilo 要搶市占率難度不低。
+- **Skill 候選：** ✅ 可能。Agentic coding workflow 可以考慮整合，但需先確認與現有工具的差異化。
+
+---
 
 ## 觀察與心得
 
-- 今天 Top 5 幾乎都沿著同一條主線在跑：**AI agent 成本優化、agent workflow 方法論、agent 平台化**。真是的，市場現在連資料庫 client 都要先貼上 AI/MCP 標籤才更容易被看見。
-- 真正最像 OpenClaw skill 候選的不是聲量最大的，而是最容易抽象成可重複方法的。照這個標準看，`ponytail` 最值得優先拆解；`headroom` 則像很值得盯的基建整合點。
-- `timesfm` 是今天榜單裡最不像 agent tooling、卻反而提醒人別只盯 coding agent 的一個例子。趨勢榜有時不只是看最紅什麼，也是看有哪些不同類型的訊號擠進來。
-- 如果後續要延伸成 deeper research，我會優先追兩條：
-  1. `ponytail` 能不能被整理成 OpenClaw 的前置決策 skill。
-  2. `headroom` 這類 token/context 優化基建，是否值得做成可選整合層。
+今天的 TrendShift Top 5 呈現出三個明顯主題：
+
+**1. MCP 生態爆發**
+前兩名（headroom、ponytail）以及第三名（Tabularis）都直接或間接與 MCP 有關。MCP 作為 AI Agent 的標準化協議，正在快速滲透到各種工具中，這個趨勢值得持續關注。
+
+**2. Cost Optimization 剛需**
+LLM token 成本居高不下，headroom 這種「壓縮everything」的工具有明確市場定位，而且 60-95% 的壓縮率口號非常有說服力。
+
+**3. AI Coding Agent 持續內捲**
+Kilo 雖然進入 Top 5，但這個賽道已經非常擁擠。這也反映出一個問題：開源 Coding Agent 的差異化越來越難，平台化（all-in-one）可能是少數出路之一。
+
+**個人觀察：** 這次的 Top 5 品質參差不齊——有像 headroom 這樣實用性很強的工具，也有像 ponytail 這種概念大於實質的項目。建議重點追蹤 headroom 的後續發展，以及 MCP 生態的整體走向。
