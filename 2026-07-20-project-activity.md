@@ -1,0 +1,37 @@
+# GitHub 專案動態
+- 檢查時間：2026-07-20
+- 檢查對象：bojieli/ai-agent-book、tirth8205/code-review-graph、kvcache-ai/ktransformers、elder-plinius/T3MP3ST、lemma-work/lemma-platform（Trending Top 3 + Web 探索 2）
+
+## 動態摘要
+
+### bojieli/ai-agent-book（bojieli/ai-agent-book，Trending #1）
+- 類型：commit / issue
+- 內容：沒有 published release（書籍 repo，不發版）。最新 3 條 commit 全部落在今天：`0b31cbc` 2026-07-20「Update star history chart [skip ci]」、`01378be` 2026-07-20「book-vi: sync CN v1.1→v1.2 changes; rebuild PDF (v1.2, 428pp)」、`462eb25` 2026-07-20「book-en, book-ta: sync the Bitter Lesson arc from zh」——**一天三語同步從 zh 主線拉 v1.2 變更並重編 PDF**（中文簡繁、英文、泰文），加上 star 歷史圖更新，呼應這本《深入理解 AI Agent：設計原理與工程實踐》（李博杰 著）今天衝上 trending #1（單日 +1,734 stars）。今天（2026-07-20）open PR：#28「fix(prompt_auto_opt): reject null old_str/new_str in _apply_one」、#27「fix(multilang_executor): read full stdout/stderr after process exit」——兩條都在補 prompt-auto-opt 工具與多語執行器的穩定性，但 Issue #29 只標題為「Mehdi」、作者 @mehdirizvi932-lab 像是打招呼/自我介紹型 issue，沒有技術內容。
+- 連結：https://github.com/bojieli/ai-agent-book/pull/28
+
+### tirth8205/code-review-graph（tirth8205/code-review-graph，Trending #2）
+- 類型：release / commit / issue
+- 內容：最新 release 為 `v2.3.7`（2026-07-18，標題寫「Maintainer-reconciliation release」，明確說不含四個 client-validation drafts）；最新 3 條 commit：`6a1ee1c` 2026-07-18「release: v2.3.7 (#659)」、`0a3bd6c` 2026-07-17「fix(security): resolve open CodeQL alerts (#657)」、`996bd46` 2026-07-17「Revert "feat(platform): add safe IBM Bob MCP support"」——三條訊號很清楚：**v2.3.7 是維護性發版 + CodeQL 安全警報清空 + IBM Bob MCP 整批 revert**。今天（2026-07-20）open PR/Issue：#674「Whole-project code review: 6 High / 17 Medium / 11 Low findings」、#673「fix(flows): rematch incremental flows across node replacement」、#672「feat(parser): capture JS/TS member-assigned function expressions」—— #674 是整合型的全專案 review 報告（H/M/L 三層），呼應 v2.3.7 之後正進入「**先把已知問題逐項清完，再放新功能**」的收斂期；#673/#672 都圍繞「node replacement / member-assigned functions」這類更細的 JS/TS 圖譜覆蓋率。
+- 連結：https://github.com/tirth8205/code-review-graph/issues/674
+
+### kvcache-ai/ktransformers（kvcache-ai/ktransformers，Trending #3）
+- 類型：release / commit / pull request
+- 內容：最新 release 仍為 `KTransformers v0.6.3`（2026-06-21，Day-0 支援 MiniMax-M3 與 GLM-5.2）；最新 3 條 commit：`d1a3ed8` 2026-07-19「[perf]: add K2 RAWINT4 prefill mat-mat dispatch (#2080)」、`937f61c` 2026-07-19「[fix](kt-kernel): AVX-VNNI-256 RAWINT4 per-expert weight loading (#2092)」、`def0f93` 2026-07-19「fix(security): bind balance_serve scheduler ZMQ socket to loopback (#2087) (#2091)」——主軸依然是 **RAWINT4（CPU 端 INT4 prefill dispatch + AVX-VNNI-256 per-expert weight loading）**，加上一條 balance_serve scheduler 的 ZMQ socket 強制綁 loopback 安全修。今天（2026-07-20）open PR：#2095「[perf](kt-kernel): blocked accumulators and opt-in packed INT4 weights for the AVX-VNNI-256 RAWINT4 backend」、#2097「fix(kt-kernel): harden qwen3.5 build script for setuptools Path / rglob」、#2096「docs: quote pip extras install examples」——三條都延續 RAWINT4 主軸：#2095 把 AVX-VNNI-256 backend 推成 opt-in 的 packed INT4、#2097 補 qwen3.5 build script 對 setuptools 新版 Path/rglob 的相容性、#2096 把 pip extras 文件補上引號，呼應 PM 那篇描述的「kt-kernel + SGLang 整合 + 跨硬體 tutorial」路線在 **CPU 端量化 kernel 持續變厚 + 安全收緊**。
+- 連結：https://github.com/kvcache-ai/ktransformers/pull/2095
+
+### elder-plinius/T3MP3ST（elder-plinius/T3MP3ST，Web 探索 #1）
+- 類型：commit / pull request / issue
+- 內容：沒有 published release。5,014★（GitHub search 排序 30 天新 repo 第一）。最新 3 條 commit 全部都是 merge：`010be32` 2026-07-17「Merge pull request #70 from jmagly/fix/60-62-auth-github-deepseek」、`be3eb7c` 2026-07-17「Merge remote-tracking branch 'upstream/main' into pr-70」、`cc9516a` 2026-07-17「Merge pull request #44 from mahdi-salmanzade/feat/arsenal-recon-adapters」——核心訊號是**外部貢獻者以 PR 直接 merge upstream**：jmagly 修 GitHub/DeepSeek auth 兩條 issue (#60-#62)、mahdi-salmanzade 推 arsenal recon adapters。今天（2026-07-20）open PR：#103「feat: update DeepSeek models to V4 Flash and V4 Pro」、#101「feat(settings): Universal API Config panel with server-side model fetch」、Issue #102「HOW TO USE THIS MASTERPIECE」——#103 把 provider 升到 DeepSeek V4 Flash/Pro、#101 把模型清單改由 server-side 抓（避免前端硬編碼）、#102 是使用者自介型提問。**T3MP3ST 是 plinius 過去 L1B3RT4S / PROMPTGUARD 系列之外的「autonomous red-team meta-harness」進化版，5K stars 訊號驗證了 AI 安全 + 紅隊方向在開源社群仍是高動能入口**。
+- 連結：https://github.com/elder-plinius/T3MP3ST/pull/103
+
+### lemma-work/lemma-platform（lemma-work/lemma-platform，Web 探索 #2）
+- 類型：release / commit / pull request
+- 內容：最新 release 為 `v0.6.2`（2026-07-11，包含 daemon tool completion 修補 + desktop UI refinement）。最新 3 條 commit：`fd43381` 2026-07-19「Retry failed conversation runs without duplicating messages (#198)」、`0b61713` 2026-07-18「Revamp logging and end-to-end correlation (#196)」、`4c44963` 2026-07-18「feat(frontend): unify platform theme and feedback (#195)」——主軸是**「對話可靠性 + 可觀測性 + UI 一致性」三件套**：失敗對話重試不重發訊息、logging 改為 end-to-end correlation、frontend 主題與 feedback widget 統一。今天（2026-07-20）open PR：#200「fix(otel): skip worker Redis polling spans」、#199「fix(daemon): refresh auth token on reconnect to survive 24h expiry」、#192「build(deps): bump the javascript-routine-updates group across 2 directories with 41 updates」——三條全圍繞「**短生命週期／長連線 daemon** 的健壯性」：otel 把 Redis polling span 跳過避免 noise、daemon auth token 在 reconnect 時主動 refresh 撐過 24h 過期、deps 一次 bump 41 個 JS routine。呼應「human + AI agent 同一個 workspace」這種協作型平台的隱形痛點——**失敗重試 / token 過期 / 觀測 noise 處理**，都還沒在主流協作工具被標準化。
+- 連結：https://github.com/lemma-work/lemma-platform/pull/200
+
+## 重點觀察
+- 今天 Trending Top 3 跟前幾天完全沒有重疊：前天 (2026-07-18) 是 `codecrafters-io/build-your-own-x + PostHog/posthog + HenryNdubuaku/maths-cs-ai-compendium`，昨天 (2026-07-19) 是 `Robbyant/lingbot-map + apache/ossie + PostHog/posthog`，今天直接換成 `bojieli/ai-agent-book + tirth8205/code-review-graph + kvcache-ai/ktransformers`，**PostHog 結束了兩天連莊**——代表 GitHub 週一到週二的 trending 開始轉向「**生產級框架 + 內容型主倉庫 + 重 CPU/GPU 異質計算**」這個組合。
+- 今天 Trending #1 是中文 AI Agent 教科書（李博杰《深入理解 AI Agent》）的開源主倉庫（單日 +1,734 stars），#3 是清華 MADSys 的 KTransformers（單日 +360 stars），兩條訊號合在一起顯示**華人 AI 工程社群在「agent 工程化 + MoE 異質推論」兩條主軸上，正在用自己的內容/框架去搶佔全球話語權**，跟今早 AM 那篇 Claude Code 走 Bun-Rust 的英文圈「agent runtime 生產驗證」是互補而非重疊的訊號。
+- Web 探索兩個 repo 切角刻意避開 trending 三強：**T3MP3ST 是 AI 安全 / 紅隊方向（plinius 把 autonomous red-team meta-harness 直接做成產品級 repo，5K stars 是當前 AI safety 切角最強的近期訊號）**、**lemma-platform 是「人類 + AI agent 同一 workspace」的協作型平台（v0.6.x 修補 daemon 24h token、Redis polling span 噪音、失敗對話重試去重——全是「multi-agent collab 隱形基建」尚未標準化的痛點）**——5 個 repo 合計覆蓋了「**內容 / framework / 異質推論 / 紅隊安全 / 多 agent 協作**」五個不同切角，比近期任一天都平均。
+- 跨 5 個 repo 的共通訊號是 **「小修 / 維護型 PR」密度異常高**：bojieli 在補 null guard + multilang executor、tirth8205 在跑 CodeQL alerts + IBM Bob MCP revert、KTransformers 在補 RAWINT4 build 相容性 + ZMQ loopback、T3MP3ST 在 merge 外部 PR（GitHub/DeepSeek auth、recon adapters）、lemma-platform 在補 otel/daemon auth/deps——**5 個 repo 沒有一個今天在 land 大型 feature**，而是把「已知問題清單 + 安全/相容性收緊」放在最高優先，呼應 AI 開源專案正在進入「先把 0.x 與早期 main 收乾淨」的階段，跟前幾天 deer-flow / nanobot / PostHog 觀察到的節奏完全一致。
+- 安全訊號密度比昨天更高、且切角更廣：T3MP3ST 直接是 AI 安全本體（autonomous red-team meta-harness），tirth8205 在跑 CodeQL alerts 清空 + IBM Bob MCP 整批 revert，KTransformers 把 balance_serve ZMQ socket 強制綁 loopback，lemma-platform 在 daemon auth token 24h refresh 與 otel span noise——**5 個 repo 同步在處理「AI 安全本體 / 程式碼安全警報 / 內部 IPC socket 暴露面 / 長連線 daemon 認證 / 觀測 noise」五個不同層次的安全問題**，並且其中兩條（IBM Bob MCP revert、T3MP3ST 升 DeepSeek V4 Pro）跟「provider / model 版本切換」高度相關，呼應 AI 開源專案正把「**provider 升級 / 模型版本切換 / IPC 暴露面 / 安全警報週期化清理**」當作常態維運，而不是一次性事件。
