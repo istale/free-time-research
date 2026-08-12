@@ -1,0 +1,30 @@
+# Give any website a WebMCP interface
+- 原始連結：https://blog.cloudflare.com/webmcp/
+- 閱讀時間：2026-08-12（晚）
+- 作者：Will Rowe（Cloudflare, Browser Engineering）
+- 發布時間：2026-08-06（更新 2026-08-10）
+- 來源：Cloudflare Blog（RSS tier-1，Agents Week 系列）
+
+## 摘要
+
+**Cloudflare 把 MCP 從「後端 server-to-server」推進到「瀏覽器 DOM 裡」。** 動機是同一個主人 08-08 Kitesurf 與 08-11 MCP v2 已經討論過的「人類向 web vs agent 向 web」分叉——現在的 web 是給人開的（按按鈕、捲 scrollbar、看廣告），但流量越來越多來自 AI agent。傳統解法是 crawler 抓回 server，結果原站沒流量也沒 credit。Cloudflare 想走另一條路：讓網站直接 expose 工具給 agent，agent 用「結構化呼叫」而不是「猜 DOM」。底層是 Chrome 146 實驗性支援的 WebMCP 標準（介面是 `document.modelContext`），Cloudflare 把「要不要 expose 哪些工具」做成 Dashboard 一個開關。
+
+**實作是「邊緣注入 + 瀏覽器內 bridge」，origin 完全不動。** 開關打開後，每次 HTML response 都會被 HTMLRewriter 加上一行 script tag，從 edge 同源載入 `/.webmcp/bridge.js`；script tag 上掛 `data-packs` 與 `data-mcp-url`。Bridge 在 page 裡找到 `document.modelContext` 就把 packs 註冊成 MCP tools，沒有就靜默 return——所以非 Chrome 146 的瀏覽器完全不受影響。Pack 是「一組 MCP tool descriptors + handlers」，靜態的（Content Credentials）開頁就宣告、動態的（Site MCP Server）boot 時才從站方 `/mcp` endpoint 拉工具清單。MCP v2 (08-11) 是 server 端協議演進，WebMCP 是把同一個 protocol 塞進瀏覽器——同一個 tool descriptor、同樣的 `CallToolResult`，agent 端不需要改 code。
+
+**兩個初始 pack 都在瀏覽器內完成，不繞道 Cloudflare server。** Content Credentials 包（讀 C2PA）：`scan_images_c2pa` 把頁面上每張圖掃一遍，回傳 `imageCount / scanned / withC2pa` 與每張圖的 `claimGenerator / signedBy / title`；`inspect_image_c2pa` 解單張圖的完整 manifest（edit history / stated author / 簽章憑證）。目前只 decode 不驗章，所以每筆結果都帶 `signatureVerified: false`，避免 agent 把「解出來的 claim」誤認為「驗過的 claim」——這是「信任分層」的清楚示範。Site MCP Server 包：把站方原本的 `/mcp` MCP server 整個代理出來，每個 `tools/list` 註冊成 `document.modelContext.registerTool` 的 proxy，`execute()` 用 same-origin fetch 把呼叫轉回站方 `/mcp`，帶訪客自己的 cookie 與 session。Bridge worker 在 edge，未來的 pack 可以 call worker（用 Workers AI 摘要 sitemap、用 AI Search 查 index），現在兩 pack 都不用——worker 只是預留的擴展點。
+
+**設計上有三條值得抄的思考框架。** 第一，「**人類友好 vs agent 友好正在分叉**」——WebMCP 的根本假設是「agent 需要的 web 不必跟人類需要的 web 是同一個形狀」：人要看 hero image，agent 要拿 `claimGenerator`；人要捲 feed，agent 要呼叫 `get_next_page()`。Kitesurf 把這條推到 renderer，WebMCP 把這條推到 browser-to-site 邊界。第二，「**origin 不變、edge 加值**」——沒有任何 client SDK、沒有任何 backend migration，HTMLRewriter 注入 + 同源 script 載入是唯一改動，這對 air-gapped downstream（horo-agent 的少讀無用功能）特別有參考價值：所有加值邏輯都堆在 edge proxy，不污染使用者自己的 origin。第三，「**信任分層明示**」——`signatureVerified: false` 這個欄位是文章裡最小但最重要的設計：不要讓 decode 看起來像 verify，工具回傳結構要讓 agent 知道「這是 raw claim，不是 verified claim」。同樣的模式可以套到主人所有 agent 框架裡：read ≠ trust、parsed ≠ validated、idempotent response ≠ acknowledged write。
+
+## 3W1H 分析
+
+### What（這篇文章到底在說什麼）
+Cloudflare 開了一個 WebMCP developer preview：只要在 Dashboard 打開 WebMCP 開關，edge 會用 HTMLRewriter 注入一段 bridge script，把網站原本的 MCP server（或 Cloudflare 自帶的 Content Credentials pack）暴露成 `document.modelContext` 上的一組 MCP tools，讓瀏覽器內的 agent 用「呼叫工具」取代「爬 DOM」。整條鏈不動 origin、不裝 SDK、不上 server round trip——除了未來的 pack 預備 call edge worker，目前的兩個 pack（Content Credentials / Site MCP Server）都 100% 在訪客瀏覽器內執行。底層是 Chrome 146 實驗性的 WebMCP 標準（`document.modelContext`），目前 Browser Run 已支援，所以 Kitesurf (browser=kitesurf) + WebMCP + site 的三層閉環在 Cloudflare 上已經成形。
+
+### Why（為什麼這對主人有意義）
+主人八月至今的 eve digest 已經連續四天落在 Cloudflare Agents Week（Kitesurf 08-08、agentic behaviors 08-09、CDC Postgres 08-10、MCP v2 08-11），WebMCP 是這條線的第五塊拼圖，而且是最貼主人工作面的一塊。第一，主人在 chrome-game-env / Phaser / Vite / browser_vision 視覺驗收工作流依賴 Playwright + CDP 抓畫面，現在多了一條「用 MCP tool 描述頁面」的替代路徑——不是取代 Kitesurf/Playwright，而是把「我現在用 screenshot 驗的東西」對應到「agent 用 MCP call 驗的東西」，兩條路徑可以交叉 sanity check。第二，主人的 SOUL.md「保留現有 codebase 已被證明穩定的 runtime 與真實行為，以保守減法 + 端到端驗證落地」這條硬規則，跟 WebMCP 的「edge-only 加值、origin 不變」是同一個精神：Cloudflare 也沒重寫網站，只是把 MCP 接頭從 backend 拓到 browser。主人可以問一個對應問題——「horo-agent 的新工具，能不能只靠 edge proxy 加上，不污染 horo-webui 的現有 surface？」第三，`signatureVerified: false` 的設計語言直接抄進主人所有 agent 框架的回傳 schema：read ≠ trust、parsed ≠ validated 是對岸已經踩過的坑。第四，08-11 MCP v2 是 server-to-server 的 protocol 演進，WebMCP 是 browser-to-site 的 protocol 演進——主人如果要做 enterprise-lite downstream，要把 MCP v2 跟 WebMCP 視為同一條戰線的兩端，不能只挑一端看。
+
+### How（主人可以怎麼用）
+最低成本嘗試：把 WebMCP 開關打到任何一個 Cloudflare 上的小型 demo site（甚至 horo-agent / horo-webui 若有 Cloudflare Pages 鏡像），然後用 Browser Run 連過去跑 Browser Rendering MCP flow，比對「WebMCP-exposed tools」跟「現在 browser_vision 截圖 + Vision LLM 讀」在「驗收一個頁面有沒有正確渲染」這條任務上的差異。重點不是「WebMCP 有多神」，而是「主人常用的那 5–10 個視覺驗收網站，有哪些功能可以用 MCP 取代 vision read」。設計語言上，可以把 WebMCP 的三條規則直接抄進 SOUL.md 的寫作偏好：（a）edge-only 加值、origin 不污染；（b）tool descriptor 與 protocol type 一致，避免發明新 protocol；（c）read ≠ trust、parsed ≠ validated，回傳結構要讓 caller 知道驗證層級。技術上，主人的 local canvas 1024:768 Phaser / chrome-game-env 不會直接受惠——WebMCP 不是 canvas API，是 document-level tool exposure——但 work flow 結構（pack 概念 + edge proxy 注入 + browser-side bridge）可以考慮復用一份「主人自己版本的 mini 工具 bridge」，讓 horo-agent 的某些 skill 不必灌進 horo-webui 的 bundle。
+
+### Insight（赫蘿的觀察）
+主人讀完最值得帶走的一件事：**「MCP 從 backend 協議變成 browser 內協議，意味著 Cloudflare 在押注 agent 不會只停在 server-to-server。」** 同一個 tool descriptor（`Tool` / `CallToolResult`）現在可以同時在 Claude Desktop 對 MCP server、agent 對 Browser Run、WebMCP bridge 對 `document.modelContext` 三個地方跑——Cloudflare 在做 protocol dominance，不是做單一產品。這對主人有三個層面的意義：（a）**工具格式的選擇**：主人寫 agent 工具的時候如果用 MCP descriptor，回程變得可以平移到 browser side，省一道 schema 翻譯；（b）**協議視角而非產品視角**：主人不要追 Cloudflare 每一個 launch，而是問「MCP 在 Cloudflare 上長成什麼形狀」——現在的形狀是 server (MCP v2) + browser (WebMCP) + browser-as-a-service (Browser Run + Kitesurf) 三層一致，這個三層一致就是 Cloudflare 的真正產品；（c）**air-gapped downstream 對應**：MCP v2 跟 WebMCP 都是「協議 + edge injection」組合，主人 enterprise-lite 如果要抄，抄的是「不要發明新 protocol，用既有協議 + edge proxy 注入」，而不是「也做一個 WebMCP」。但主人不要做的事是——把 WebMCP 當成「我的 horo-webui 也要 expose tools」的證據自己寫一整套 DOM injection 框架，那會直接撞上主人「複雜化會被打回」的紅線。Cloudflare 能這樣做是因為他們有 HTMLRewriter + edge worker + Browser Run 三層堆疊，主人沒有這個底座；正確的讀法是「學習 edge proxy 加值的 injection pattern」，不是「複刻 Cloudflare 的 edge stack」。另外一個微小但重要的觀察——WebMCP 跟 Kitesurf 的 BrowserRun + Kitesurf 三者形成一個「agent 不需要看到人類 web」的完整閉環：Kitesurf 給 agent 一個不看人眼的瀏覽器、WebMCP 給 agent 一個結構化介面、BrowserRun 把前兩者綁在 Cloudflare 上賣。主人最近在 chrome-game-env 的「視覺是理解的入口」剛好相反——主人的工作前提是「agent 要看懂人類看到的畫面」，所以 WebMCP 對主人是「替代路徑」而不是「主路徑」，這個定位關係主人要記住，否則很容易被 vendor 帶著走。
