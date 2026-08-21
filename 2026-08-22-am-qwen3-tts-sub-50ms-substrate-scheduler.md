@@ -1,0 +1,29 @@
+# Pushing the Speed-Cost Frontier for Qwen3-TTS
+- 原始連結：https://nari-labs.com/blog/qwen3-tts-speed-cost-frontier/
+- HN 討論：https://news.ycombinator.com/item?id=49389952
+- 閱讀時間：2026-08-22（早間）
+- 來源：Hacker News 熱門前 10 第 9 名（87 分／17 則留言，讀取時 Asia/Taipei 07:00）；Nari Labs Blog（2026-08-19 發布）
+
+## 摘要
+
+**單 H100 上把 Qwen3-TTS 1.7B 壓到 sub-50 ms p95 TTFA、10 RPS、$2/1M characters —— 比 ElevenLabs V3 ($100/1M) 便宜 50×。** Nari Labs 用 Qwen3-TTS CustomVoice 1.7B 這個 Apache-licensed 開源模型，把 TTS 服務化做到 frontier 等級。Baseline 是 vLLM-Omni / SGLang-Omni / VoxServe / M* 四套既有 serving stack，全部都有可觀察的問題（vLLM-Omni 100% underruns、SGLang-Omni 1.14s p95 TTFA、VoxServe 從 49 ms 一拉到 6 RPS 就 363 ms）。tune 之後 VoxServe 49.3 ms p95 @ 1 RPS 已經是 sub-50 ms 級，但 6 RPS 直接退化。Nari 的版本在 10 RPS 仍然守住 sub-50 ms、20 RPS 還壓在 100 ms 以下、整條曲線在四個 reference engine 之下。
+
+**$4.29/hr 的 1× H100 SXM 跑滿載得到 ~$2/1M characters、~630 characters/sec @ 10 RPS**：是 ElevenLabs V3 的 1/50、Cartesia Sonic 3.5 的 1/25，且 TTFA 更低。H100 SXM 是雲端 H100 不是 on-prem，但 open-source implementation + benchmark 一起 release 在 GitHub（`nari-labs/nari-qwen3-tts` + `nari-labs/benchmarks`），意味著任何人都能在自己 GPU 上重現——不是 vendor-locked 黑盒子。
+
+**怎麼做到的：把 3 個 TTS module 全部丟上同一個 shared scheduler，再讓 state-cache Codec + CUDA graph 吃掉剩下的固定成本。** Qwen3-TTS 結構是 Talker（first codebook）+ Code Predictor（剩 15 個 codebook，每 frame 固定 15 step）+ causal Codec（waveform decode）三段。傳統實作把 Talker+Code Predictor 合併做、跟 Codec 分開 stage——但合併會變成 non-preemptible unit，Codec 卡住整個 batch。Nari 反過來：把三段全拆開、各自獨立 schedulable、用同一個 scheduler 排，Talker 還沒產出時優先跑 Code Predictor 趕進度、Codec 接近 playback deadline 時插隊進 batch。Code Predictor 因為 15 step 是 fixed，把整個 frame-generation loop 預先 capture 成一個 CUDA graph + Triton attention kernel for short bounded context；Codec 用 state cache 保留 Transformer context 跟 convolutional state，incremental decode 只處理新進來的 frame，第一幀仍 full decode（state cache 初始化會傷 TTFA）。
+
+**為什麼值得主人看**：主人這條 inference-optimization axis（8/04 KV cache 完整性 → 8/07 vLLM disagg → 8/11 Muse Glimmer K-Quant-Dynamic + DFlash → 8/20 DFlash 2 pairwise path + two-tap conv）一路在處理 LLM token economics，但 LLM 不是主人 stack 唯一的 inference workload。TTS 是「另一種 streaming inference」——同樣有 TTFA（LLM 的 TTFT 對應）、同樣有 token-by-token 生成、同樣吃 GPU 但 bottleneck 不同（不是 memory-bound、是 schedule-bound），Nari 證明 3-module shared scheduler + state-cache codec 在 TTS 上做到的事情，剛好是 LLM speculative decoding 那條軸在另一個 workload 上的同構體。對主人來說：hermes-agent-lite 之後若要 ship voice-first agent（Twilio / iMessage 語音輸入輸出），這套 open-source implementation 直接省掉「TTS 延遲天花板怎麼壓」的 research time。
+
+## 3W1H 分析
+- **What（做了什麼/主題）**:
+  Nari Labs 釋出 Qwen3-TTS 1.7B 的 open-source production-grade serving stack：5-engine head-to-head benchmark（vLLM-Omni / SGLang-Omni / VoxServe / M* / 自己的 Nari）在 Poisson open-loop traffic 下量測 p95 TTFA / underrun rate / characters-per-second，並把達成 sub-50 ms p95 @ 10 RPS 的 scheduler 設計（3-module shared scheduler + state-cache Codec + CUDA graph for fixed-step Code Predictor + leading-silence trim + frame-accumulation ramp）整套 open-source。
+- **Why（為什麼重要）**:
+  TTS 是 AI agent voice-first 化的隱形 cost ceiling：ElevenLabs V3 $100/1M characters 跟 Cartesia Sonic 3.5 $49/1M 已經比 GPT-4o-mini TTS 還貴，但生產環境對 TTFA 要求是 sub-100 ms（人耳 auditive processing ~200 ms，TTFA 超過 100 ms 開始覺得「慢」、超過 200 ms 開始覺得「不自然」）。Nari 用 1× H100 + Apache-licensed 模型把 cost 砍到 $2/1M、TTFA 砍到 sub-50 ms，門檻從「只有 vendor 能做」變成「任何有 1 顆 H100 的團隊都能做」。對 voice-first agent 來說，這等於 voice channel 從「premium feature」變成「default channel」。
+- **How（如何運作/實作）**:
+  - **Layer 0 — 既有 serving engine 共通 tuning**：每個 engine 都先做 leading-silence trim（detect sustained speech from short RMS windows、移除 onset 前 samples，~80 ms TTFA 改善）+ frame-accumulation ramp（初期 small chunk 衝 TTFA，後段 large chunk 衝 batch efficiency）
+  - **Layer 1 — 三 module 拆開上同一個 scheduler**：Talker / Code Predictor / Codec 各自獨立 schedulable task；scheduler 用 urgency-aware policy（unstarted request = high priority、established stream = deadline-aware）；critical request 當 anchor、其他 compatible work 填 batch
+  - **Layer 2 — 計算熱點固化**：Code Predictor 的 15-step fixed loop capture 為 CUDA graph + Triton short-context attention kernel；Codec 用 Transformer-context + CNN-convolutional-state cache 做 incremental decode（首幀 full decode、後續 state-cached）
+  - **Layer 3 — 平台常數**：batch size 超過預先 capture 上限時 split scheduling turn 不退回 eager；EOS suppression 時 defer termination check 避免 CPU–GPU sync；支援 upstream LLM streaming input（speech-to-speech 系統可在 LLM 還在 generate token 時就開始 synthesize）
+  - **驗證方法**：5-min Poisson open-loop / per-engine compatibility-only tune 跑 baseline → 加 silence-trim + frame-accumulation 跑 tuning → 自己實作跑 final；audible TTFA 用「Deepgram STT reconstruct playback from PCM」回放驗證
+- **Insight（赫蘿心得）**:
+  主人這一年 inference-optimization 軸的 5 個 pick（8/04 KV cache 完整性 / 8/07 vLLM / 8/11 Muse Glimmer K-Quant / 8/20 DFlash 2 / 今天 Nari TTS）有個共同 pattern 我之前沒抽出來：**「把分散的 compute 模組綁進同一個 shared scheduling surface，token-level 突發性 latency 會立刻塌掉一階」**。Cloudflare 把 K/V quant + caching 拉進同一個 inference graph 是這樣、DFlash 把 drafter + verifier 綁在一起是這樣、Nari 把 Talker + Code Predictor + Codec 三段全拆再放回同一個 scheduler 也是這樣。對 hermes-agent-lite 的下一步有兩個具體可移植啟示：(1) **Layer 0 first**：Nari 的 leading-silence trim + frame-accumulation ramp 兩個都是 < 50 行 Python、在任何 TTS endpoint 前包一層 proxy 就拿到 80 ms TTFA——比寫 scheduler 便宜太多，主人若真要 ship voice-first agent，第一個 commit 應該是這個 proxy（< 4 小時 prototype）；(2) **共享 scheduler 的代價是平台常數**：Nari 必須「CUDA graph capture 一組 fixed batch size、超過就 split」——這跟 llama.cpp merge DFlash 2 PR #27342 的「固定 speculative draft length + 驗證端 rejection sampling 不變」邏輯同構，等於主人之前在 8/20 pick 裡觀察到的「output 數學上等價於 target distribution + 工程上需要固化平台常數」這個 pattern 的 TTS 版本。最低成本的第一步不是裝 H100（16GB Mac 跑不動 1.7B + 30 GB KV cache），而是先用 Nari 開源的 scheduler design 文件在 hermes-agent-lite 內部畫一張「3-module scheduling surface」的 ASCII diagram，標出 voice channel 哪天要 ship 時哪些 boundary 需要自己寫。
