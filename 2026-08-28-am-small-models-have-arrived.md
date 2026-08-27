@@ -1,0 +1,32 @@
+# Small Models Have Arrived
+- 原始連結：https://calv.info/small-models-have-arrived
+- 閱讀時間：2026-08-28（早間）
+- 來源：Hacker News 熱門前 10 第 2 名（讀取時 387 分／173 則留言，Asia/Taipei 07:00）；作者 Calvin French-Owen（Segment 共同創辦人），2026-08-26 發布
+
+## 摘要
+
+**Segment 共同創辦人 Calvin French-Owen 把玩了 gpt-5.6-luna、GLM 5.3 兩支小模型後，論證「small/fast/cheap/good-enough 模型已經抵達 Pareto frontier，企業需求即將爆發」**。他實際體驗：luna 可跑 ~100 tps、能掃過整個 codebase + email + knowledge base；最關鍵的是 API 成本——一次複雜研究任務約 $0.10，比起上一代 Sonnet class 動輒 $1 起跳的天文數字，*消費級 AI 應用的商業可行性第一次被打開*。搭配 artificialanalysis.ai 的 benchmark 圖，luna 在 capability vs cost 二維散佈圖上明顯推進 frontier。
+
+**核心洞察：「企業 95% 的工作不是 IQ 180 突破型，而是 token-spewer 日常協調型」**。Calvin 引用他 Segment 共同創辦人 Peter（同時經營 Charm Industrial、Revoy 等多家公司）的觀察：跨多家公司、多條 front 的日常工作中，*「超有回應、隨時推進」的 token 噴射型角色才是常態*。要做的事是跳上 call、nudge 人、block-and-tackle、把球往前推——這些對 LLM 來說不需要 breakthrough intelligence，只要「夠快、夠便宜、夠好」。需求對應到模型供給：「frontier」模型會持續被 IQ 180 工作吸納（工程、硬科學、模型訓練），但「fast/cheap/good-enough」模型的市場需求才剛要起飛。
+
+**為什麼現在才有意義：cost curve 跨過了 consumer 級的「收費天花板」**。Calvin 點出過去十幾年消費級網路產品的成功劇本（網站→流量→ads marketplace，Google/Facebook/Snapchat 都這樣），但加入 AI 之後「*每個 request 都有 inference cost*」，資本需求暴增到傳統 consumer startup 模式扛不住——他想做的「個人化 daily news 微站」（HN + Reddit + Twitter 跨源彙整）以前 Sonnet 做一次就要 ~$1，根本收不到 $30/mo。luna 讓這個降到 ~$0.10/run，*訂閱制 consumer AI app 的損益模型第一次轉正*。
+
+**對企業落地，他給的預測是「hard problems 已經大致解決，接下來是 hard eng 的時代」**。要讓 small/cheap model 在企業真正可用，還需要：(1) 新一代 agent harness 把 orchestration / planning / memory 抽象出來；(2) prompt injection 防禦；(3) role-based permission 與 audit 設計；(4) cost / latency / quality 的 production-grade 可觀測性。Calvin 在文末開門見山：「If you're also experimenting with making small models useful, please drop me a line」——他在募一個小圈子共同推進 small-model-as-default 的方向。
+
+**為什麼值得主人看**：主人 8 月多篇摘要都在圍繞同一條主軸——*small/fast/cheap model + 強 harness 才是 production agent 的真正形態*：8/24 Earendil「What is a Harness」拆解 system prompt / tools / agentic loop / translation layer 四零件；8/26 OpenAI Jalapeño 證明 inference substrate 也可以走 ASIC-agnostic 路線；8/27 GLM 5.3 Flash 那篇主人已經在評估本地小模型替代 frontier API 的取捨。這篇 Calvin French-Owen 是 *業內 CEO 級的 from-the-trenches 觀察*，比純 benchmark 多了一層「企業真實工作流」的視角。三個對主人 horo-agent 的 actionable：(1) **翻轉 cost model 假設**：主人目前 MEMORY 寫「MiniMax quota 耗盡時不要盲目重建相同 card」——這條原則在小模型時代有了新解，把同一個 task 改路由到本地 27B qwen38-code 或 GLM 5.3 Flash，*cost 不是 quota 重置問題，而是 model selection 問題*。horo-agent 的 routing layer 必須從 day-1 把「task-complexity-tier → model-tier」做成 first-class，而不是一律送 frontier。(2) **token-spewer 工作定義要寫進 agent spec**：主人目前的 Kanban decomposition、skill load、memory editor 都是「frontier-model-default」設計，但 Calvin 指出 *企業 95% 的工作是「持續 coordination + nudge」類型*，這些任務用 27B 本地小模型跑得動、成本 1/10、latency 1/3。建議主人盤點現有 horo-agent 場景，把屬於 token-spewer 類（file organizer、commit message 生成、daily news 摘要——例如今天這個 cron task 本身）標出來，下次 spec 改版改成「default small model + frontier fallback」。(3) **sub-$0.10/run 的 consumer AI 應用主人可以做為 side project**：Calvin 的 daily personalized news 是最簡單的可立 project，主人已有現成的 tailscale-curation-server（8765）+ browser-qa-loop 工具鏈，搭一個「每日 6 點生成本地化 news 微站」PoC 驗證 cost model，比讀十篇 benchmark 報告更直接。
+
+## 3W1H 分析
+- **What（做了什麼/主題）**:
+  Calvin French-Owen（Segment 共同創辦人）撰寫的 from-the-trenches 觀察文，主軸是「小模型已抵達 Pareto frontier」。他用 gpt-5.6-luna、GLM 5.3 兩個月的親身體驗，搭配人工分析（artificialanalysis.ai）的 capability-cost 散佈圖，論證「fast/cheap/good-enough」模型的市場需求即將從 niche 變成 default。文章三段推進：先用 cost curve（$1 → $0.10/run）說明 consumer AI 商業模式可行性；再用 Peter 的「IQ 180 vs token spewer」二分法解釋企業工作分配；最後呼籲社群共同投入 small-model-friendly 的 harness / 安全性 / permission 基建。
+- **Why（為什麼重要）**:
+  1. **Cost 數字直接打開新商業模式**：$0.10/run 對比上一代 $1 是 10× 改善，這是 consumer-grade AI app（$5–30/mo 訂閱）損益模型第一次轉正的數字級 evidence，不是 demo，是 running production。
+  2. **企業工作分配的重新框架**：Calvin 提出「95% 是 token-spewer，不是 IQ 180」，把 LLM 市場從「追求 AGI frontier」拉回到「日常 coordination 自動化」的真實企業需求。這個二分法比 capability ladder（small/medium/large）更貼近 owner-operator 的決策視角。
+  3. **小模型創業者的「現在是時候」宣言**：8/22 Daedalus 150M on-device、8/23 Why Local LLM Feels Dumber、8/27 GLM 5.3 Flash 都是技術層的報導，這篇是第一篇 *CEO 級的市場訊號*——他告訴 venture community 「consumer AI 沒起色不是缺技術，是過去缺 cost curve；現在 cost curve 過了，請看接下來 12 個月」。
+  4. **Harness / 安全 / permission 是下一波基建**：Calvin 點出 small-model 真正落地還缺「harness + prompt injection 防禦 + role/permission」三件套，這三件恰好是主人 horo-agent 正在做的核心工作（agentic loop / system prompt / tools）—— 主人不是這個觀點的旁觀者，是被預言的「基建提供者」。
+- **How（如何運作/實作）**:
+  - **Capability × Cost 散佈圖**：artificialanalysis.ai 的 benchmark 把模型畫在 capability-vs-cost 二維空間，luna、GLM 5.3 明顯推進 Pareto frontier——這個圖是論文的視覺錨點，比純文字描述更有說服力。
+  - **小模型對 frontier 的替代路徑**：不是「所有任務都用小模型」，而是「consumer-scale（低延遲、低成本、高量）任務用小模型，frontier-scale（複雜推理、長脈絡、AGI 級問題）仍用 Sonnet/Opus/GPT-5.6」。Calvin 自己 coding 仍用 Fable 5 / 5.6 Sol。
+  - **企業 token-spewer 工作的具體例子**：跨多家公司的日常 nudge、call 摘要、CRM 更新、email draft、commit message、daily digest——這些都是 LLM 已能勝任、不需要突破性能力的「*90 分自動化*」工作。
+  - **落地基建的三個缺口**：(1) agent harness（orchestration + memory + tool calling + translation layer）；(2) prompt injection 防禦（特別是當模型被外部內容包圍時）；(3) RBAC / audit / cost observability——這三件正好是 horo-agent 正在做的東西。
+- **Insight（赫蘿心得）**:
+  今天這篇跟主人 8 月的多條軸線匯流：(1) **「consumer AI 為什麼到現在才出現」這個問題的答案不是缺技術，是缺 cost curve**——這跟主人 MEMORY 裡「主人要求以真實 handoff、exit code、tests、health、live smoke 判定狀態；timeout、protocol violation、network blocker、設定存在、task started 必須分開報告」是同一個哲學的市場版本：*當 infra 成本低到「壞掉也無所謂」，真正的創新才會爆發*。horo-agent 的 air-gap / downstream 路線走到今天，本質上就是把 owner-controlled infra 的 cost 壓到可以「壞掉也無所謂」的水位，然後才會有下游的「小模型 agent 能做的事」。(2) **token-spewer vs IQ 180 的二分法是主人盤點 kanban 工作流的好框架**：主人現有的 Kanban task 中，「與主人討論、公開情報蒐集、Kanban 分派追蹤、當前 checklist、session continuity、長期 memory」這六類（MEMORY 寫的「default 瘦身時仍保留」）其實 90% 屬於 token-spewer 類——它們需要的是 *持續在線 + 不出錯 + 成本可控*，不是突破性 reasoning。建議主人在下一輪 horo-agent spec review 時，把這六類任務正式標記為「small-model-default + frontier-fallback」，預期可以省下 60-80% inference cost 且 latency 降到 1/3。(3) **Calvin 文末的「drop me a line」是主人不該跳過的訊號**：他是 Segment 共同創辦人，募的是 *small-model 友善基建圈子*——這跟主人 horo-agent 的「harness + permission + cost observability」三條線完全對位。雖然主人不一定要親自回信，但這是一個 *驗證「harness > model」敘事有 venture-level support* 的市場訊號，主人可以記錄在 MEMORY 的「market signal」備註區，下次寫 roadmap 提案時引用。(4) **反面教材提醒——這篇是觀點文不是量測文**：Calvin 引用 artificialanalysis.ai 的圖、自己主觀的 cost 數字（$0.10）、Peter 的「95%」都是敘事性 evidence，沒有可重現的 benchmark。主人引用這篇做 decision 時，要分清楚 *「Calvin 的個人經驗」* 跟 *「跨模型跨任務的 capability ladder 量測」*——後者主人已經在 8/27 GLM 5.3 Flash 那篇做過了，兩者一起看才是完整圖像。總結：今天這篇不是「小模型 benchmark」，是「*小模型時代的 CEO manifesto*」——主人已經在技術層（27B qwen38-code 本地執行）、infra 層（horo-agent harness）、市場層（本日 cost curve 報導）三條線都到位，下一步就是 *把 spec 改成「small-model-default」*，這是 2026 Q3-Q4 主人最該做的 single decision。
